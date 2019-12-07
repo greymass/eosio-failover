@@ -1,0 +1,37 @@
+# default configuration, override in config/local.toml or with env vars
+
+# application name used for logging and service namespace
+name = 'eosio-failover'
+
+# API server to use
+api = 'https://jungle.greymass.com'
+
+# The number of missed rounds to tolerate before triggering failover
+rounds_missed_threshold = 2
+
+# The private key capable of calling the eosio::regproducer action
+# BEST PRATICES: use a key that is only capable of calling eosio::regproducer
+regproducer_key = '5K9TQZDL7bagZLKLFU7VBtHPcSmZPRCqS14hZWsp56C5whBpQbT'
+
+# The producer account to monitor and sign with
+producer_account = 'producer'
+
+# The producer account permission used to sign with
+producer_permission = 'producer'
+
+# The website URL to provide during the regproducer call
+producer_website = 'https://eos.io'
+
+# The location code to provide during the regproducer call
+producer_location = 0
+
+# A list of potential signing public keys to attempt failover with (any number)
+producer_signing_pubkeys = ['EOS7RZ8MNqgHarNJuwSaSa8VXFkTa2jie17R82uNWcCcta8sM1fah', 'EOS5o13ANoWwfZiTzSaT1ifToQ2mg1RXURcybbuEQbjJ2V9UMFUfT']
+
+# slack notifier on activity
+# slack = { url = '', channel = '', chain = '' }
+
+# logging output, can be repeated
+[[log]]
+level = 'debug'
+out = 'stdout'
