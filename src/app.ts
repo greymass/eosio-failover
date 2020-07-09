@@ -237,16 +237,22 @@ export async function check() {
     logger.debug({ rounds_missed, rounds_missed_threshold }, 'producer has exceeded missed round threshold, executing failover')
     slack.send(`⚠️ producer exceeded missed round threshold ${rounds_missed}/${rounds_missed_threshold}`)
     // If keys exist, failover to one of them
-    if (producer_signing_pubkeys.length) {
-      const next_signing_key = producer_signing_pubkeys.shift()
-      const txid = await failover(next_signing_key)
-      logger.info({ txid, next_signing_key }, 'regproducer submitted to failover to next available node')
-      slack.send(`⚠️ regproducer submitted with new signing key of ${next_signing_key}, ${producer_signing_pubkeys} keys remaining in rotation (${txid})`)
-    } else {
-      // If no public keys exist, unregister the BP
+    try {
+      if (Array.isArray(producer_signing_pubkeys) && producer_signing_pubkeys.length) {
+        const next_signing_key = producer_signing_pubkeys.shift()
+        const txid = await failover(next_signing_key)
+        logger.info({ txid, next_signing_key }, 'regproducer submitted to failover to next available node')
+        slack.send(`⚠️ regproducer submitted with new signing key of ${next_signing_key}, ${producer_signing_pubkeys} keys remaining in rotation (${txid})`)
+      } else {
+        // If no public keys exist, unregister the BP
+        const txid = await unregister()
+        logger.info({ txid }, 'unregprod submitted')
+        slack.send(`⚠️ producer has no backup nodes available, unregprod submitted (${txid})`)
+      }
+    } catch(e) {
       const txid = await unregister()
-      logger.info({ txid }, 'unregprod submitted')
-      slack.send(`⚠️ producer has no backup nodes available, unregprod submitted (${txid})`)
+      logger.info({ txid, e }, 'failure to rotate/unregprod, new unregprod submitted')
+      slack.send(`⚠️ failure to rotate/unregprod, unregprod submitted (${txid})`)
     }
   }
 }
