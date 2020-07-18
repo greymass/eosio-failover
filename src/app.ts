@@ -250,9 +250,15 @@ export async function check() {
         slack.send(`⚠️ producer has no backup nodes available, unregprod submitted (${txid})`)
       }
     } catch(e) {
-      const txid = await unregister()
-      logger.info({ txid, e }, 'failure to rotate/unregprod, new unregprod submitted')
-      slack.send(`⚠️ failure to rotate/unregprod, unregprod submitted (${txid})`)
+      logger.info({ e }, 'failure to rotate/unregprod, attempting unregprod')
+      try {
+        const txid = await unregister()
+        logger.info({ txid }, 'failure to rotate/unregprod, new unregprod submitted')
+        slack.send(`⚠️ failure to rotate/unregprod, unregprod submitted (${txid})`)
+      } catch (err) {
+        logger.info({ err }, 'double failure, rotating then unregistering... trying again soon')
+        slack.send(`double failure, rotating then unregistering... trying again soon`)
+      }
     }
   }
 }
